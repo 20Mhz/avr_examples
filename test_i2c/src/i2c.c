@@ -21,12 +21,12 @@ void initI2C(){
 // Communication based on Datasheet Example
 //
 #define TWI_START 0x08
-#define TWI_MT_SLAW_ACK 0x18
-#define TWI_MT_SLAW_NACK 0x20
-#define TWI_MT_SLAR_ACK 0x40
-#define TWI_MT_DATAW_ACK 0x28
-#define TWI_MT_DATAR_ACK 0x50
-#define TWI_MT_DATAR_NACK 0x58
+#define TWI_MTX_SLAW_ACK 0x18
+#define TWI_MTX_SLAW_NACK 0x20
+#define TWI_MTX_SLAR_ACK 0x40
+#define TWI_MTX_DATAW_ACK 0x28
+#define TWI_MTX_DATAR_ACK 0x50
+#define TWI_MTX_DATAR_NACK 0x58
 
 #define F_CPU 8000000UL  // 8 MHz
 #include <util/delay.h>
@@ -44,7 +44,7 @@ int writeI2C(uint8_t dev_addr, uint8_t pointer, uint16_t data){
 	TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWIE) ; // Send SLA+W
 	while(!(TWCR & (1<<TWINT))); // Waint for SLA+W to be transmitted
 	//printf("address returned state is: 0x%x\n", 0xFF & (TWSR & 0xF8));
-	if((TWSR & 0xF8) != TWI_MT_SLAW_ACK) // check status
+	if((TWSR & 0xF8) != TWI_MTX_SLAW_ACK) // check status
 			return -1;
 
     // Set pointer	
@@ -52,7 +52,7 @@ int writeI2C(uint8_t dev_addr, uint8_t pointer, uint16_t data){
 	TWCR = (1<<TWINT) | (1<<TWEN); // Send DATA+W
 	while(!(TWCR & (1<<TWINT))); // Waint for SLA+W to be transmitted
 	//printf("write pointer state is: 0x%x\n", 0xFF & (TWSR & 0xF8));
-	if((TWSR & 0xF8) != TWI_MT_DATAW_ACK) // check status
+	if((TWSR & 0xF8) != TWI_MTX_DATAW_ACK) // check status
 			return -1;
 
 	// Write Data x2
@@ -60,7 +60,7 @@ int writeI2C(uint8_t dev_addr, uint8_t pointer, uint16_t data){
 		TWDR = 0xFF & (data >> 8*i); 
 		TWCR = (1<<TWINT) | (1<<TWEN); // Send DATA+W
 		while(!(TWCR & (1<<TWINT))); // Waint for SLA+W to be transmitted
-		if((TWSR & 0xF8) != TWI_MT_DATAW_ACK) // check status
+		if((TWSR & 0xF8) != TWI_MTX_DATAW_ACK) // check status
 				return -1;
 	}
 		//printf("write data state is: 0x%x\n", 0xFF & (TWSR & 0xF8));
@@ -83,14 +83,14 @@ int readI2C(uint8_t dev_addr, uint8_t pointer, uint16_t *data){
 	TWDR = (dev_addr << 1)   ; // SLA+W For setting pointer	
 	TWCR = (1<<TWINT) | (1<<TWEN); // Send SLA+R
 	while(!(TWCR & (1<<TWINT))); // Waint for SLA+W to be transmitted
-	if((TWSR & 0xF8) != TWI_MT_SLAW_ACK) // check status
+	if((TWSR & 0xF8) != TWI_MTX_SLAW_ACK) // check status
 			return -1;
 
     // Set pointer	
 	TWDR = pointer; 
 	TWCR = (1<<TWINT) | (1<<TWEN); // Send DATA+W
 	while(!(TWCR & (1<<TWINT))); // Waint for SLA+W to be transmitted
-	if((TWSR & 0xF8) != TWI_MT_DATAW_ACK) // check status
+	if((TWSR & 0xF8) != TWI_MTX_DATAW_ACK) // check status
 			return -1;
 	// Trasmit STOP
 	TWCR = (1<<TWINT | (1<<TWSTO) | (1<<TWEN)); // TWINT starts operation
@@ -108,7 +108,7 @@ int readI2C(uint8_t dev_addr, uint8_t pointer, uint16_t *data){
 	TWCR = (1<<TWINT) | (1<<TWEN); // Send SLA+R
 	while(!(TWCR & (1<<TWINT))); // Waint for SLA+W to be transmitted
 	//printf("address returned state is: 0x%x\n", 0xFF & (TWSR & 0xF8));
-	if((TWSR & 0xF8) != TWI_MT_SLAR_ACK) // check status
+	if((TWSR & 0xF8) != TWI_MTX_SLAR_ACK) // check status
 			return -1;
 
 
@@ -116,12 +116,12 @@ int readI2C(uint8_t dev_addr, uint8_t pointer, uint16_t *data){
 	TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWEA); // Get DATA
 	while(!(TWCR & (1<<TWINT))); // Waint for data to be received
 	//printf("Data returned state is: 0x%x\n", 0xFF & (TWSR & 0xF8));
-	if((TWSR & 0xF8) != TWI_MT_DATAR_ACK) // check status
+	if((TWSR & 0xF8) != TWI_MTX_DATAR_ACK) // check status
 			return -1;
 	*data =  (TWDR<<8) & 0xFF00; 
 	TWCR = (1<<TWINT) | (1<<TWEN); // Get DATA
 	while(!(TWCR & (1<<TWINT))); // Waint for data to be received
-		if((TWSR & 0xF8) != TWI_MT_DATAR_NACK) // check status
+		if((TWSR & 0xF8) != TWI_MTX_DATAR_NACK) // check status
 			return -1;
 	*data |=  TWDR; 
 	
